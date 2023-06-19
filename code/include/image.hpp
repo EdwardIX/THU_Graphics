@@ -45,6 +45,12 @@ public:
         data[y * width + x] = color;
     }
 
+    void AddPixel(int x, int y, const Vector3f &color) {
+        assert(x >= 0 && x < width);
+        assert(y >= 0 && y < height);
+        data[y * width + x] += color;
+    }
+
     static Image *LoadPPM(const char *filename);
 
     void SavePPM(const char *filename) const;

@@ -2,6 +2,7 @@
 #define PLANE_H
 
 #include "object3d.hpp"
+#include "utils.hpp"
 #include <vecmath.h>
 #include <cmath>
 #include <iostream>
@@ -26,10 +27,10 @@ public:
     bool intersect(const Ray &ray, Hit &hit, float tmin) override {
         // solve: dot(ray.getOrigin() + t*ray.getDirection() , norm) == d
         float fac = Vector3f::dot(ray.getDirection(), normal);
-        if(fac < 1e-6 && -1e-6 < fac) return false;
+        if(!O(fac)) return false;
         float thit = (d - Vector3f::dot(ray.getOrigin(), normal)) / fac;
         if(thit < tmin || thit > hit.getT()) return false;
-        hit.set(thit, material, normal);
+        hit.set(thit, material, normal, ray.pointAtParameter(thit));
         return true;
     }
 

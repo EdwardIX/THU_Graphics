@@ -21,37 +21,22 @@ public:
     ~Sphere() override = default;
 
     bool intersect(const Ray &ray, Hit &hit, float tmin) override {
-        Vector3f link = c - ray.getOrigin();
-        float dist = Vector3f::dot(link, link);
-        Hit nhit;
-        if(dist < r*r) { // inside sphere
-            float trt = Vector3f::dot(link, ray.getDirection()) \
-                    / Vector3f::dot(ray.getDirection(), ray.getDirection());
-            Vector3f rt = ray.pointAtParameter(trt);
-            Vector3f d = c - rt;
-            float t2 = sqrt(r*r - Vector3f::dot(d, d));
-
-            float thit = trt + t2;
-            Vector3f normhit = c - ray.pointAtParameter(thit);
-            nhit.set(thit, material, normhit.normalized());
-        } else if(dist > r*r) { // outside sphere
-            float trt = Vector3f::dot(link, ray.getDirection()) \
-                    / Vector3f::dot(ray.getDirection(), ray.getDirection());
-            Vector3f rt = ray.pointAtParameter(trt);
-            Vector3f d = c - rt;
-            if(r*r <= Vector3f::dot(d, d)) return false; // not interset
-            float t2 = sqrt(r*r - Vector3f::dot(d, d));
-
-            float thit = trt - t2;
-            Vector3f normhit = ray.pointAtParameter(thit) - c;
-            nhit.set(thit, material, normhit.normalized());
-        } else {
-            nhit.set(0, material, (ray.getOrigin() - c).normalized());
+        float t1 = Vector3f::dot(c - ray.getOrigin(), ray.getDirection()); 
+        Vector3f x = ray.pointAtParameter(t1); // the projection of center on ray
+        Vector3f d = c - x; // dist between center and ray
+        if(d.squaredLength() >= r*r) return false; // no intersect: dist >= r
+        float t2 = sqrt(r*r - d.squaredLength());
+        if(t1 - t2 > tmin && t1 - t2 < hit.getT()) {
+            Vector3f p = ray.pointAtParameter(t1 - t2);
+            hit = Hit(t1 - t2, material, p - c, p);
+            return true;
         }
-
-        if(nhit.getT() < tmin || nhit.getT() > hit.getT()) return false;
-        hit = nhit;
-        return true;
+        if(t1 + t2 > tmin && t1 + t2 < hit.getT()) {
+            Vector3f p = ray.pointAtParameter(t1 + t2);
+            hit = Hit(t1 + t2, material, p - c, p);
+            return true;
+        }
+        return false;
     } 
 
 protected:

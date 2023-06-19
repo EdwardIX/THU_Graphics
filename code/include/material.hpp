@@ -14,13 +14,23 @@ public:
 
     explicit Material(const Vector3f &d_color, const Vector3f &s_color = Vector3f::ZERO, float s = 0) :
             diffuseColor(d_color), specularColor(s_color), shininess(s) {
-
+        refractionColor = d_color;
+        coef_reflect = 0.0;
+        coef_refract = 0.0;
+        coef_diff = 1;
+        refraction_rate = 1.1;
     }
 
     virtual ~Material() = default;
 
     virtual Vector3f getDiffuseColor() const {
         return diffuseColor;
+    }
+    virtual Vector3f getRefractionColor() const {
+        return refractionColor; // TODO: enable the second one ? 
+    }
+    virtual Vector3f getSpecularColor() const {
+        return specularColor;
     }
 
 
@@ -33,10 +43,12 @@ public:
         return lightColor * shed;
     }
 
-protected:
     Vector3f diffuseColor;
     Vector3f specularColor;
+    Vector3f refractionColor;
+    float coef_reflect, coef_refract, coef_diff;
     float shininess;
+    float refraction_rate;
 };
 
 
