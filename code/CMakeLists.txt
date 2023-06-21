@@ -15,11 +15,13 @@ SET(PA1_SOURCES
         src/main.cpp
         src/mesh.cpp
         src/ppm.cpp
-        src/scene_parser.cpp)
+        src/scene_parser.cpp
+        src/texture.cpp)
 
 SET(PA1_INCLUDES
         include/bvhtree.hpp
         include/camera.hpp
+        include/curve.hpp
         include/group.hpp
         include/hit.hpp
         include/image.hpp
@@ -31,8 +33,11 @@ SET(PA1_INCLUDES
         include/plane.hpp
         include/ppm.hpp
         include/ray.hpp
+        include/revsurface.hpp
         include/scene_parser.hpp
         include/sphere.hpp
+        include/stb_image.h
+        include/tiny_obj_loader.h
         include/transform.hpp
         include/triangle.hpp
         include/utils.hpp

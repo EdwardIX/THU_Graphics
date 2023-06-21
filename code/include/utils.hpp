@@ -4,9 +4,10 @@
 #include "vecmath.h"
 #include <cstring>
 #include <string>
-#include <cstdio>
 #include <random>
 #include <cmath>
+#include <iostream>
+#include <sstream>
 
 #define USE_OPENMP
 // constants 
@@ -15,16 +16,16 @@
 const int BVHLEAF_MAXIMUM_TRIANGLE = 20;
 
 // PPM Algorithm
-const int PPM_ITER = 15;
-const int PPM_PHOTON_PER_ITER = 1e6;
+const int PPM_ITER = 6;
+const int PPM_PHOTON_PER_ITER = 2e6;
 const int PPM_PHOTON_NUM = PPM_ITER * PPM_PHOTON_PER_ITER;
-const int PPM_TRACERAY_MAXDEPTH = 5;
-const int PPM_TRACEPHOTON_MAXDEPTH = 5;
-const float PPM_INIT_RADIUS = 0.3;
+const int PPM_TRACERAY_MAXDEPTH = 10;
+const int PPM_TRACEPHOTON_MAXDEPTH = 10;
+const float PPM_INIT_RADIUS = 1;
 const float PPM_ALPHA = 0.7;
 
 // floating points 
-const float eps = 1e-5;
+const float eps = 1e-3;
 const float pi = 3.14159265358979324;
 
 inline int O(float x){
@@ -42,6 +43,14 @@ inline bool less_v3f(const Vector3f &a, const Vector3f &b) {
 }
 inline Vector3f abs_v3f(const Vector3f &a) {
     return Vector3f((a[0]<0 ? -a[0]:a[0]), (a[1]<0 ? -a[1]:a[1]), (a[2]<0 ? -a[2]:a[2]));
+}
+template<class Type>
+inline Type interp_3(const Type &a, const Type &b, const Type &c, float bcoef, float ccoef) { // linear interpolation 
+    return (1 - bcoef - ccoef) * a + bcoef * b + ccoef * c;
+}
+template<class Type>
+inline Type interp_4(const Type &a00, const Type &a01, const Type &a10, const Type &a11, float coef0, float coef1) { // linear interpolation 
+    return (1-coef0) * ( (1-coef1) * a00 + coef1 * a01 ) + coef0 * ( (1-coef1) * a10 + coef1 * a11 );
 }
 
 // random algorithm
@@ -71,16 +80,16 @@ inline Vector3f rand_sphere() { // generate uniform distributed vector in S^2
 
 // debugs
 
-inline void raise(char *msg, bool exit=true) {
-    printf("\033[31m%s\033[0m", msg);
+inline void raise(std::string msg, bool exit=true) {
+    printf("\033[31m%s\033[0m", msg.c_str());
     fflush(stdout);
     if(exit) throw 123123;
 }
 
 inline std::string debug_3f(Vector3f v){
-    static char buf[100];
-    sprintf(buf, "(%f, %f, %f)", v[0], v[1], v[2]);
-    return std::string(buf);
+    std::stringstream ss;
+    ss << "(" << v[0] << ", " << v[1] << ", " << v[2] << ")";
+    return ss.str();
 }
 
 #endif

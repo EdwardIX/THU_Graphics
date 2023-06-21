@@ -14,6 +14,8 @@ class Plane;
 class Triangle;
 class Transform;
 class Mesh;
+class Curve;
+class RevSurface;
 
 #define MAX_PARSER_TOKEN_LENGTH 1024
 
@@ -59,10 +61,12 @@ private:
 
     void parseFile();
     void parsePerspectiveCamera();
+    void parseLensCamera();
     void parseBackground();
     void parseLights();
     Light *parsePointLight();
     Light *parseDirectionalLight();
+    Light *parseDiskLight();
     void parseMaterials();
     Material *parseMaterial();
     Object3D *parseObject(char token[MAX_PARSER_TOKEN_LENGTH]);
@@ -72,6 +76,9 @@ private:
     Triangle *parseTriangle();
     Mesh *parseTriangleMesh();
     Transform *parseTransform();
+    Curve *parseBezierCurve();
+    Curve *parseBsplineCurve();
+    RevSurface *parseRevSurface();
 
     int getToken(char token[MAX_PARSER_TOKEN_LENGTH]);
 

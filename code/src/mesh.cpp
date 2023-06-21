@@ -1,3 +1,4 @@
+#define TINYOBJLOADER_IMPLEMENTATION
 #include "mesh.hpp"
 #include "bvhtree.hpp"
 #include <fstream>
@@ -6,73 +7,60 @@
 #include <cstdlib>
 #include <utility>
 #include <sstream>
+#include <vector>
+#include "tiny_obj_loader.h"
 
-
+int read(char *&p) {
+    int x=0;char c=*(p++);
+    for(;c < '0' && c > '9'; c=*(p++));
+    for(;c >= '0' && c <= '9'; c=*(p++)) x = x * 10 + (c ^ 48);
+    return x;
+}
+Vector3f getVector3f(std::vector<float> &d, int x) {x *= 3; return Vector3f(d[x], d[x+1], d[x+2]);}
+Vector2f getVector2f(std::vector<float> &d, int x) {x *= 2; return Vector2f(d[x], d[x+1]);}
 Mesh::Mesh(const char *filename, Material *material) : Object3D(material) {
+    tinyobj::attrib_t attrib;
+    std::vector<tinyobj::shape_t> shapes;
+    std::vector<tinyobj::material_t> materials;
+    std::string warn;
+    std::string err;
+    bool success = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filename, NULL, true);
+    if(!err.empty()) {printf("\033[33m%s\033[0m\n",err.c_str());}
+    // if(!warn.empty()) {printf("\033[33m%s\033[0m\n",warn.c_str());}
+    if(!success) {printf("Cannot Open %s\n", filename); return;}
 
-    // Optional: Use tiny obj loader to replace this simple one.
-    std::ifstream f;
-    f.open(filename);
-    if (!f.is_open()) {
-        std::cout << "Cannot open " << filename << "\n";
-        return;
-    }
-    std::string line;
-    std::string vTok("v");
-    std::string fTok("f");
-    std::string texTok("vt");
-    char bslash = '/', space = ' ';
-    std::string tok;
-    int texID;
-    while (true) {
-        std::getline(f, line);
-        if (f.eof()) {
-            break;
-        }
-        if (line.size() < 3) {
-            continue;
-        }
-        if (line.at(0) == '#') {
-            continue;
-        }
-        std::stringstream ss(line);
-        ss >> tok;
-        if (tok == vTok) {
-            Vector3f vec;
-            ss >> vec[0] >> vec[1] >> vec[2];
-            v.push_back(vec);
-        } else if (tok == fTok) {
-            if (line.find(bslash) != std::string::npos) {
-                std::replace(line.begin(), line.end(), bslash, space);
-                std::stringstream facess(line);
-                TriangleIndex trig;
-                facess >> tok;
-                for (int ii = 0; ii < 3; ii++) {
-                    facess >> trig[ii] >> texID;
-                    trig[ii]--;
-                }
-                t.push_back(trig);
-            } else {
-                TriangleIndex trig;
-                for (int ii = 0; ii < 3; ii++) {
-                    ss >> trig[ii];
-                    trig[ii]--;
-                }
-                t.push_back(trig);
-            }
-        } else if (tok == texTok) {
-            Vector2f texcoord;
-            ss >> texcoord[0];
-            ss >> texcoord[1];
-        }
+    if(shapes.size() != 1) raise("Multiple Shapes Enconter in mesh\n");
+
+    for(int i=0; i < (int)shapes[0].mesh.indices.size(); i+=3) {
+        tinyobj::index_t a = shapes[0].mesh.indices[i+0];
+        tinyobj::index_t b = shapes[0].mesh.indices[i+1];
+        tinyobj::index_t c = shapes[0].mesh.indices[i+2];
+
+        tri.push_back(Triangle(
+            getVector3f(attrib.vertices, a.vertex_index),
+            getVector3f(attrib.vertices, b.vertex_index),
+            getVector3f(attrib.vertices, c.vertex_index),
+            material
+        ));
+
+        if(a.texcoord_index != -1 && b.texcoord_index != -1 && c.texcoord_index != -1)
+            tri.back().setuv(
+                getVector2f(attrib.texcoords, a.texcoord_index),
+                getVector2f(attrib.texcoords, b.texcoord_index),
+                getVector2f(attrib.texcoords, c.texcoord_index)
+            );
+        
+        if(a.normal_index != -1 && b.normal_index != -1 && c.normal_index != -1)
+            tri.back().setn(
+                getVector3f(attrib.normals, a.normal_index),
+                getVector3f(attrib.normals, b.normal_index),
+                getVector3f(attrib.normals, c.normal_index)
+            );
     }
 
-    bvh.build(*this);
-
-    f.close();
+    bvh.build(tri);
 }
 
 bool Mesh::intersect(const Ray &r, Hit &h, float tmin) {
-
     return bvh.intersect(r, h, tmin);
 }

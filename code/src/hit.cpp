@@ -2,11 +2,12 @@
 #include "material.hpp"
 #include "utils.hpp"
 
-const Vector3f Hit::getDiffuseColor() const { return material->getDiffuseColor();}
+const Vector3f Hit::getDiffuseColor() const { return material->getDiffuseColor(u, v);}
 const Vector3f Hit::getSpecularColor() const { return material->getSpecularColor();}
-const Vector3f Hit::getRefractionColor(float t) const {
+const Vector3f Hit::getRefractionColor() const {
     return material->getRefractionColor();
-    // return Vector3f(exp(refractionColor[0] * -t), exp(refractionColor[1] * -t), exp(refractionColor[2] * -t));
+    // Vector3f color = material->getRefractionColor();
+    // return Vector3f(exp(color[0] * -t), exp(color[1] * -t), exp(color[2] * -t));
 }
 
 Ray Hit::reflection(Ray &in) {
@@ -15,19 +16,19 @@ Ray Hit::reflection(Ray &in) {
 }
 
 Ray Hit::refraction(Ray &in) {
-    Vector3f din = in.getDirection().normalized();
+    const Vector3f &din = in.getDirection();
     float cosi = - Vector3f::dot(din, normal);
     float k = cosi > 0 ? material->refraction_rate : 1.0/material->refraction_rate; // ray(in) coming from outside/inside
     float cosr2 = 1 - (1-cosi*cosi) / (k*k); // cos2 of refraction ray
     if (O(cosr2) > 0) { // refraction
         if(cosi > 0)
-            return Ray(position, din.normalized() / k + normal * (cosi / k + sqrt(cosr2)));
+            return Ray(position, din / k + normal * (cosi / k - sqrt(cosr2)));
         // note: the formula are as follow:
         // assert normal(0, 1); din(sin i, -cos i); dout(sin r, -cos r);
         // sin r = sin i / k, -cos r = -cos i / k + cos i / k - cos r
         // thus, (sin r, -cos r) = (sin i, -cos i) / k + normal * (cos i / k - cos r)
         else 
-            return Ray(position, din.normalized() / k - normal * (-cosi / k + sqrt(cosr2)));
+            return Ray(position, din / k + normal * (cosi / k + sqrt(cosr2)));
         // But, if ray coming from inside, normal(0, -1); cosi = -cosi, then the result is like above.
     } else { // total reflection (cosr < 0)
         return reflection(in); 
@@ -52,4 +53,10 @@ Vector3f Hit::Shade(const Vector3f &dirToCamera, const Vector3f &dirToLight, con
     float coef2 = Vector3f::dot(dirToCamera, reflect);
     Vector3f shed = getDiffuseColor() * std::max(coef1, 0.0f) + getSpecularColor() * pow(std::max(coef2, 0.0f), material->shininess);
     return lightColor * shed;
+}
+
+void Hit::disturbNormal(const Vector3f &U, const Vector3f &V) {
+    Vector2f grad = material->getGrad(u, v);
+    normal = normal + grad[0] * U + grad[1] * V;
+    normal.normalize();
 }

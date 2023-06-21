@@ -21,6 +21,7 @@ public:
 
     Transform(const Matrix4f &m, Object3D *obj) : o(obj) {
         transform = m.inverse();
+        invtransform = m;
     }
 
     ~Transform() {
@@ -32,16 +33,16 @@ public:
         Ray tr(trSource, trDirection);
         bool inter = o->intersect(tr, h, tmin);
         if (inter) {
-            h.set(h.getT(), h.getMaterial(), 
-                transformDirection(transform.transposed(), h.getNormal()).normalized(), 
-                transformPoint(transform.transposed(), h.getPosition()));
+            h.set(h.getT() / trDirection.length(), h.getMaterial(), 
+                transformDirection(invtransform, h.getNormal()), 
+                transformPoint(invtransform, h.getPosition()), h.getU(), h.getV());
         }
         return inter;
     }
 
 protected:
     Object3D *o; //un-transformed object
-    Matrix4f transform;
+    Matrix4f transform, invtransform;
 };
 
 #endif //TRANSFORM_H

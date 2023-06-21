@@ -83,9 +83,10 @@ private:
 };
 
 class DiskLight : public Light {
+public:
     DiskLight() = delete;
-    DiskLight(const Vector3f &p, const Vector3f &d, const Vector3f &c, float r):
-        Light(50), position(p), direction(d.normalized()), color(c), radius(r) {
+    DiskLight(const Vector3f &p, const Vector3f &e, const Vector3f &d, const Vector3f &c, float r):
+        Light(e), position(p), direction(d.normalized()), color(c), radius(r) {
         do {
             xaxis = rand_sphere();
             yaxis = Vector3f::cross(xaxis, direction);

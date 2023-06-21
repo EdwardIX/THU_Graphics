@@ -151,14 +151,14 @@ Image* Image::LoadPPM(const char *filename) {
     // misc header information
     int width = 0;
     int height = 0;  
-    char tmp[100];
-    fgets(tmp,100,file); 
+    char tmp[100], *xxx; // use xxx to prevent warning
+    xxx = fgets(tmp,100,file); 
     assert (strstr(tmp,"P6"));
-    fgets(tmp,100,file); 
+    xxx = fgets(tmp,100,file); 
     assert (tmp[0] == '#');
-    fgets(tmp,100,file); 
+    xxx = fgets(tmp,100,file); 
     sscanf(tmp,"%d %d",&width,&height);
-    fgets(tmp,100,file); 
+    xxx = fgets(tmp,100,file); 
     assert (strstr(tmp,"255"));
     // the data
     Image *answer = new Image(width,height);

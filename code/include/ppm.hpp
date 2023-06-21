@@ -19,8 +19,10 @@ struct ViewPoint {
     float radius, photon_num; // photon_num is float because it is an estimate.
     // record corresponding pixel
     int pixel_x, pixel_y;
-    ViewPoint(const Hit &h, Vector3f d, Vector3f c, int x, int y):
-        hit(h), direction(d), color(c), result(0.0), radius(PPM_INIT_RADIUS), photon_num(0), pixel_x(x), pixel_y(y) {} 
+    // for field depth
+    float dist;
+    ViewPoint(const Hit &h, Vector3f d, Vector3f c, int x, int y, float dis):
+        hit(h), direction(d), color(c), result(0.0), radius(PPM_INIT_RADIUS), photon_num(0), pixel_x(x), pixel_y(y), dist(dis) {} 
 };
 
 struct Photon {
@@ -46,8 +48,8 @@ public:
     KDTree kdt;
 
     void run();
-    void traceRay(Ray ray, Vector3f color, int depth, int pixel_x, int pixel_y);
-    void tracePhoton(Ray ray, Vector3f color, int depth, int diff_count);
+    void traceRay(Ray ray, Vector3f color, int depth, int pixel_x, int pixel_y, float dist);
+    void tracePhoton(Ray ray, Vector3f color, int depth);
 };
 
 #endif

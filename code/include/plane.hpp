@@ -13,13 +13,19 @@
 
 class Plane : public Object3D {
 public:
-    Plane() {
+    Plane() {}
 
-    }
+    Plane(const Vector3f &norm, float d_, Material *m, 
+        const Vector3f &texture_up = Vector3f::UP, const Vector3f &texture_conf = Vector3f(0, 0, 100)) : 
+            Object3D(m), normal(norm.normalized()), d(d_ / norm.length()), configs(texture_conf) {
 
-    Plane(const Vector3f &norm, float d_, Material *m) : Object3D(m) {
-        normal = norm / norm.length();
-        d = d_ / norm.length();
+        right = Vector3f::cross(texture_up, normal); 
+        if(!O(right.length())) {
+            // raise("Warning: Plane norm and up vector are on the same line\n");
+            right = Vector3f::cross(Vector3f::FORWARD, normal);
+        }
+        right.normalize();
+        up = Vector3f::cross(normal, right);
     }
 
     ~Plane() override = default;
@@ -30,14 +36,25 @@ public:
         if(!O(fac)) return false;
         float thit = (d - Vector3f::dot(ray.getOrigin(), normal)) / fac;
         if(thit < tmin || thit > hit.getT()) return false;
-        hit.set(thit, material, normal, ray.pointAtParameter(thit));
+        float u,v; 
+        getuv(u, v, ray.pointAtParameter(thit));
+        hit.set(thit, material, normal, ray.pointAtParameter(thit), u, v);
+        hit.disturbNormal(right, up);
         return true;
     }
 
 protected:
-
     Vector3f normal;
     float d;
+
+    // for texture only
+    Vector3f up, right, configs;
+
+    void getuv(float &u, float &v, const Vector3f &p) {
+        Vector3f dir = p - d * normal;
+        u = (Vector3f::dot(dir, right) - configs[0]) / configs[2];
+        v = (Vector3f::dot(dir, up) - configs[1]) / configs[2];
+    }
 };
 
 #endif //PLANE_H

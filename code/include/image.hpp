@@ -27,6 +27,8 @@ public:
         return height;
     }
 
+    bool Legal(int x, int y) const { return x >= 0 && x < width && y >= 0 && y < height;}
+
     const Vector3f &GetPixel(int x, int y) const {
         assert(x >= 0 && x < width);
         assert(y >= 0 && y < height);

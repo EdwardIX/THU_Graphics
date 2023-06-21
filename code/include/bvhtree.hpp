@@ -28,12 +28,11 @@ struct BVHNode {
 class BVHTree {
 private:
     BVHNode *rt;
-    std::vector<Triangle> tri;
     void build_recursive(std::vector<TriangleInfo> t, BVHNode *p);
     bool intersect_recursive(const Ray &r, Hit &h, float tmin, BVHNode *p);
 public:
     ~BVHTree() {if(rt) delete rt;}
-    void build(Mesh &mesh);
+    void build(std::vector<Triangle> &tri);
     bool intersect(const Ray &r, Hit &h, float tmin);
 };
 
